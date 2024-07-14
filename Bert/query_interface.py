@@ -4,7 +4,7 @@ from response_generator import ResponseGenerator
 from sentence_transformers import SentenceTransformer
 
 def main():
-    folder_path = 'Data/Ireland'  # Path to your document folder
+    folder_path = '../Data/Ireland'  # Path to your document folder
     doc_handler = DocumentHandler(folder_path)
     documents = doc_handler.get_documents()
 
