@@ -1,15 +1,15 @@
 import unittest
-import requests
+from response_generator import ResponseGenerator
 
 class TestResponseAccuracy(unittest.TestCase):
     def setUp(self):
-        self.url = 'http://127.0.0.1:5000/search'
-    
-    def test_search_response(self):
-        response = requests.post(self.url, json={'query': 'financial regulations'})
-        self.assertEqual(response.status_code, 200)
-        self.assertIn('Extractive Answer:', response.json()['response'])
-        self.assertIn('Abstractive Summary:', response.json()['response'])
+        self.generator = ResponseGenerator()
+
+    def test_response(self):
+        context = "The financial regulator ensures compliance with financial laws."
+        query = "What does the financial regulator do?"
+        response = self.generator.generate_response(context, query)
+        self.assertIn("ensures compliance", response)
 
 if __name__ == '__main__':
     unittest.main()

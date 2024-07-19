@@ -1,55 +1,43 @@
 import os
-import pdfplumber
-from docx import Document
-from typing import List, Dict
+import PyPDF2
+import docx
+from typing import List
 
-def extract_text_from_pdf(file_path: str) -> List[Dict[str, str]]:
-    text_data = []
-    with pdfplumber.open(file_path) as pdf:
-        for i, page in enumerate(pdf.pages):
-            text_data.append({
-                "text": page.extract_text(),
-                "file_path": file_path,
-                "page_number": i + 1
-            })
-    return text_data
-
-def extract_text_from_docx(file_path: str) -> List[Dict[str, str]]:
-    doc = Document(file_path)
-    text_data = []
+def extract_text_from_pdf(pdf_path: str) -> str:
     text = ""
-    for para in doc.paragraphs:
-        text += para.text + "\n"
-    text_data.append({
-        "text": text,
-        "file_path": file_path,
-        "page_number": 1
-    })
-    return text_data
+    with open(pdf_path, 'rb') as file:
+        reader = PyPDF2.PdfReader(file)
+        for page in reader.pages:
+            text += page.extract_text()
+    return text
 
-def extract_text_from_txt(file_path: str) -> List[Dict[str, str]]:
-    with open(file_path, 'r') as file:
-        return [{
-            "text": file.read(),
-            "file_path": file_path,
-            "page_number": 1
-        }]
+def extract_text_from_docx(docx_path: str) -> str:
+    doc = docx.Document(docx_path)
+    text = "\n".join([para.text for para in doc.paragraphs])
+    return text
 
-def extract_text(file_path: str) -> List[Dict[str, str]]:
-    ext = os.path.splitext(file_path)[1].lower()
-    if ext == '.pdf':
+def extract_text_from_txt(txt_path: str) -> str:
+    with open(txt_path, 'r', encoding='utf-8') as file:
+        return file.read()
+
+def extract_text(file_path: str) -> str:
+    if file_path.endswith('.pdf'):
         return extract_text_from_pdf(file_path)
-    elif ext == '.docx':
+    elif file_path.endswith('.docx'):
         return extract_text_from_docx(file_path)
-    elif ext == '.txt':
+    elif file_path.endswith('.txt'):
         return extract_text_from_txt(file_path)
     else:
-        raise ValueError(f"Unsupported file type: {ext}")
+        raise ValueError("Unsupported file format")
 
-def extract_text_from_directory(directory_path: str) -> List[Dict[str, str]]:
+def read_documents_from_directory(directory_path: str) -> List[str]:
     texts = []
-    for filename in os.listdir(directory_path):
-        file_path = os.path.join(directory_path, filename)
-        if os.path.isfile(file_path):
-            texts.extend(extract_text(file_path))
+    for root, _, files in os.walk(directory_path):
+        for file in files:
+            file_path = os.path.join(root, file)
+            try:
+                text = extract_text(file_path)
+                texts.append(text)
+            except Exception as e:
+                print(f"Error processing file {file_path}: {e}")
     return texts
