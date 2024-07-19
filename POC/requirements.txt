@@ -1,0 +1,9 @@
+flask
+flask_cors
+pytesseract
+pdfplumber
+python-docx
+transformers
+torch
+sentence-transformers
+faiss-cpu

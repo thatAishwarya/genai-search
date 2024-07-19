@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GenAI Chatbot</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div id="chat-container">
+        <div id="chat-box">
+            <div id="chat-log"></div>
+            <div id="documents-container"></div>
+        </div>
+        <div id="input-area">
+            <input type="text" id="message-input" placeholder="Type your message here...">
+            <button id="send-button">Send</button>
+        </div>
+    </div>
+    <script>
+        document.getElementById('send-button').addEventListener('click', async () => {
+            const inputField = document.getElementById('message-input');
+            const message = inputField.value.trim();
+            if (message) {
+                // Append user message to chat log
+                appendMessage('user', message);
+                inputField.value = '';
+                
+                // Send the message to the server
+                const response = await fetch('/search', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ query: message }),
+                });
+
+                const data = await response.json();
+                // Append chatbot response and document details to chat log
+                appendMessage('bot', data.response);
+                displayDocuments(data.documents);
+            }
+        });
+
+        function appendMessage(sender, text) {
+            const chatLog = document.getElementById('chat-log');
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message', sender);
+            messageElement.innerText = text;
+            chatLog.appendChild(messageElement);
+            chatLog.scrollTop = chatLog.scrollHeight; // Scroll to the bottom
+        }
+
+        function displayDocuments(documents) {
+            const container = document.getElementById('documents-container');
+            container.innerHTML = ''; // Clear previous documents
+
+            documents.forEach(doc => {
+                const card = document.createElement('div');
+                card.classList.add('document-card');
+                
+                const header = document.createElement('div');
+                header.classList.add('document-header');
+                header.innerHTML = `<strong>File Name:</strong> ${doc.file_name} <br> <strong>File Title:</strong> ${doc.file_title} <br> <strong>Page Number:</strong> ${doc.page_number}`;
+                
+                const summary = document.createElement('div');
+                summary.classList.add('document-summary');
+                summary.innerText = doc.summary;
+                
+                card.appendChild(header);
+                card.appendChild(summary);
+                container.appendChild(card);
+            });
+        }
+    </script>
+</body>
+</html>
