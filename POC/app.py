@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
-documents_path = 'Data/TCA'
+documents_path = 'Data/TCA-Test'
 index_path = 'index_file.index'
 
 class Testoid():

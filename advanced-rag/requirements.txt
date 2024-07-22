@@ -1,0 +1,48 @@
+# FastAPI and its dependencies
+fastapi
+uvicorn
+
+# Pydantic for data validation
+pydantic
+
+# Streamlit for the frontend interface
+streamlit
+
+# LangChain and related libraries
+langchain
+langchain-community
+chromadb
+
+# OpenAI for embeddings
+openai
+
+# PDF processing
+pdfplumber
+
+# Chroma for vector storage
+chromadb
+
+# Environment variables
+python-dotenv
+
+# Document loaders and text splitters
+unstructured
+
+# Requests library
+requests==2.28.1
+
+# Requests mock library
+requests_mock
+
+# Other dependencies with specified versions
+clyent==1.2.1
+nbformat==5.4.0
+urllib3
+charset-normalizer
+botocore
+
+# Optional: For extra functionality
+numpy
+pandas
+
+unstructured
