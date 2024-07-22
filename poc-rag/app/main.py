@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from document_processing import DocumentProcessor
 from embedding_indexing import EmbeddingIndexer
-from summarizer_integration import SummarizerModel  # Update import to new summarizer model
+from summarizer_integration import SummarizerModel
 from service_context import ServiceContext
 
 import logging
@@ -14,16 +14,22 @@ logger = logging.getLogger(__name__)
 app = FastAPI()
 
 # Initialize components
-try:
-    doc_processor = DocumentProcessor(folder_path='../data/TCA-Test')
-    documents = doc_processor.load_pdfs()
-    embedding_indexer = EmbeddingIndexer()
-    summarizer_model = SummarizerModel()  # Use SummarizerModel instead of LlamaModel
-    service_context = ServiceContext(summarizer_model, embedding_indexer)  # Adjust initialization
-    logger.info("Components initialized successfully.")
-except Exception as e:
-    logger.error(f"Error during initialization: {e}")
-    raise HTTPException(status_code=500, detail="Error during initialization")
+doc_processor = DocumentProcessor(folder_path='../data/TCA')
+embedding_indexer = EmbeddingIndexer()
+summarizer_model = SummarizerModel()
+service_context = ServiceContext(summarizer_model, embedding_indexer)
+
+@app.on_event("startup")
+async def startup_event():
+    logger.info("Initializing components...")
+    try:
+        # Load and index documents on startup
+        documents = doc_processor.load_pdfs()
+        embedding_indexer.create_index(documents)
+        logger.info("Components initialized and index created successfully.")
+    except Exception as e:
+        logger.error(f"Error during initialization: {e}")
+        raise HTTPException(status_code=500, detail="Error during initialization")
 
 class QueryRequest(BaseModel):
     query: str
@@ -47,9 +53,8 @@ async def query(request: QueryRequest):
 @app.post("/syncdocs")
 async def sync_docs():
     try:
-        global documents
         logger.info("Syncing documents...")
-        doc_processor = DocumentProcessor(folder_path='../data/TCA-Test')
+        # Load and index documents
         documents = doc_processor.load_pdfs()
         embedding_indexer.create_index(documents)
         logger.info("Documents synced and index updated successfully.")
@@ -57,4 +62,3 @@ async def sync_docs():
     except Exception as e:
         logger.error(f"Error syncing documents: {e}")
         raise HTTPException(status_code=500, detail="Error syncing documents")
-

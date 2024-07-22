@@ -16,15 +16,8 @@ To set up the project, follow these steps:
 1. **Clone the repository:**
 
     ```bash
-    git clone https://github.com/your-username/your-repo.git
-    cd your-repo
-    ```
-
-2. **Create and activate a virtual environment:**
-
-    ```bash
-    python -m venv venv
-    source venv/bin/activate  # On Windows use `venv\Scripts\activate`
+    git clone https://github.com/thatAishwarya/genai-search
+    cd your-folder/poc-rag
     ```
 
 3. **Install the required packages:**
@@ -48,6 +41,7 @@ To set up the project, follow these steps:
 1. **Start the FastAPI server:**
 
     ```bash
+    cd app
     uvicorn main:app --reload
     ```
 
@@ -58,14 +52,12 @@ To set up the project, follow these steps:
 1. **Start the Streamlit app:**
 
     ```bash
-    streamlit run ui.py
+    cd ui
+    streamlit run chat.py
     ```
 
    This will open the Streamlit app in your web browser, where you can interact with the document processing and querying system.
 
-### Syncing Documents
-
-To sync the documents with the backend, use the "Sync Docs" button in the Streamlit interface. This will reprocess and index the documents located in the specified folder.
 
 ## Project Structure
 
@@ -76,17 +68,3 @@ To sync the documents with the backend, use the "Sync Docs" button in the Stream
 - `main.py`: The FastAPI application script.
 - `ui.py`: The Streamlit frontend application script.
 
-## Contributing
-
-If you would like to contribute to this project, please fork the repository and submit a pull request with your changes. Ensure that your contributions adhere to the project's coding standards and guidelines.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Acknowledgments
-
-- FastAPI for building the web API.
-- Streamlit for creating interactive web applications.
-- Sentence Transformers and Transformers for advanced text processing.
-- FAISS for efficient similarity search.

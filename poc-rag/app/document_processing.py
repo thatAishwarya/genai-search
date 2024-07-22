@@ -7,9 +7,7 @@ class DocumentProcessor:
         self.folder_path = folder_path
 
     def clean_text(self, text):
-        # Remove special characters (keeping only alphanumeric and basic punctuation)
         text = re.sub(r'[^\w\s.,!?\'"]', '', text)
-        # Normalize whitespace
         text = ' '.join(text.split())
         return text
 
@@ -21,21 +19,13 @@ class DocumentProcessor:
                 try:
                     with open(path, 'rb') as file:
                         reader = PdfReader(file)
-                        text = ''
                         for page_num, page in enumerate(reader.pages):
-                            # Extract text from each page
                             page_text = page.extract_text() or ''
-                            # Check for empty pages
                             if not page_text.strip():
                                 print(f"Warning: No text extracted from page {page_num + 1} of {filename}")
                             else:
-                                # Clean the extracted text
                                 page_text = self.clean_text(page_text)
-                                text += page_text
-                        if text.strip():  # Ensure there is some text before adding
-                            documents.append((filename, text))
-                        else:
-                            print(f"Warning: No valid text extracted from {filename}")
+                                documents.append((filename, page_num + 1, page_text))
                 except Exception as e:
                     print(f"Error processing file {filename}: {e}")
         return documents
