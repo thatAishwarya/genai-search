@@ -66,5 +66,5 @@ To set up the project, follow these steps:
 - `summarizer_integration.py`: Implements the `SummarizerModel` class for summarizing text.
 - `service_context.py`: Contains the `ServiceContext` class to manage interactions between components.
 - `main.py`: The FastAPI application script.
-- `ui.py`: The Streamlit frontend application script.
+- `chat.py`: The Streamlit frontend application script.
 
