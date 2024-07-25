@@ -1,31 +1,40 @@
-body {
+html, body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
+    height: 100%; /* Ensure the body takes the full viewport height */
+    overflow: hidden; /* Prevent scrollbar due to extra content */
+}
+
+body {
     display: flex;
     flex-direction: column;
     align-items: center;
 }
+
 .title {
     margin: 20px;
 }
+
 .top-right {
     position: absolute;
     top: 20px;
     right: 20px;
 }
+
 .chat-container {
     background-color: #f0f0f0;
     border-radius: 10px;
     padding: 10px;
-    height: 400px;
-    width: 80%;
+    width: 70%; /* Set width to 70% */
     max-width: 600px;
+    height: calc(100vh - 120px); /* Height of viewport minus title and input-container height */
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    margin-bottom: 20px;
+    margin-bottom: 10px; /* Margin adjusted to avoid overlap with input-container */
 }
+
 .user-query {
     background-color: #fff3cd;
     padding: 10px;
@@ -34,6 +43,7 @@ body {
     color: #856404;
     align-self: flex-start;
 }
+
 .bot-message {
     background-color: #cce5ff;
     padding: 10px;
@@ -42,17 +52,26 @@ body {
     color: #004085;
     align-self: flex-end;
 }
+
 .input-container {
     display: flex;
-    width: 80%;
+    width: 70%; /* Set width to 70% */
     max-width: 600px;
+    background-color: #fff; /* Optional background color */
+    border-top: 1px solid #ccc; /* Optional border */
+    padding: 10px;
+    position: fixed; /* Fix the position at the bottom */
+    bottom: 0; /* Stick to the bottom of the viewport */
+    z-index: 10; /* Ensure it stays above other content */
 }
+
 .input-container input {
     flex: 1;
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 5px;
 }
+
 .input-container button {
     padding: 10px;
     margin-left: 10px;
@@ -62,9 +81,11 @@ body {
     color: white;
     cursor: pointer;
 }
+
 .input-container button:hover {
     background-color: #0056b3;
 }
+
 #typing-indicator {
     font-style: italic;
     color: #6c757d; /* Adjust the color as needed */
@@ -74,3 +95,12 @@ body {
     align-self: flex-end;
 }
 
+.sync-btn {
+    padding: 10px;
+    margin-left: 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #767b81;
+    color: white;
+    cursor: pointer;
+}
