@@ -5,22 +5,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FinAssist</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </head>
 <body>
     <h1 class="title">
-        FinAssist
-        <!-- <span class="tagline">Find Solutions in Your Financial Files</span> -->
+        <b>FinAssist:</b> Find Solutions in Your Financial Files
     </h1>
     <div class="top-right">
-        <button id="sync-docs-btn" class="sync-btn">Sync Documents</button>
+        <button id="sync-docs-btn" class="sync-btn"><i class="fas fa-sync-alt"></i> Refresh Docs</button>
     </div>
-    <div class="chat-container" id="chat-container"></div>
+    <div class="chat-container" id="chat-container">
+        <div class="chat-messages"></div>
+        <div class="sample-prompts" id="sample-prompts">
+            <div class="sample-prompt" data-query="Explain tax relief withdrawal in section 505?">Explain tax relief withdrawal in section 505?</div>
+            <div class="sample-prompt" data-query="Eligible expenditures under TCA 1997?">Eligible expenditures under TCA 1997?</div>
+            <div class="sample-prompt" data-query="Tax implications of foreign inheritance?">Tax implications of foreign inheritance?</div>
+        </div>
+    </div>
     <div class="input-container">
-        <input type="text" id="user-query" placeholder="Enter your query here">
-        <button id="submit-btn">Submit</button>
+        <div class="input-group">
+            <input type="text" id="user-query" class="form-control" placeholder="Enter your query here">
+            <div class="input-group-append">
+                <button id="submit-btn" class="btn btn-primary">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
     </div>
 
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="chatbot.js"></script>
 </body>

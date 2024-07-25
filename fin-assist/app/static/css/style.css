@@ -1,27 +1,23 @@
 html, body {
-    font-family: Arial, sans-serif;
+    font-family: 'Roboto', sans-serif;
     margin: 0;
     padding: 0;
-    height: 100%; /* Ensure the body takes the full viewport height */
-    overflow: hidden; /* Prevent scrollbar due to extra content */
+    height: 100%;
+    overflow: hidden;
 }
 
 body {
     display: flex;
     flex-direction: column;
     align-items: center;
+    background-color: #f8f9fa;
 }
 
 .title {
-    margin: 20px !important;
-    font-size: 0.8em !important; 
-    text-align: center; /* Center-align the title and tagline */
-}
-
-.tagline {
-    display: block; /* Make tagline appear on a new line */
-    font-size: 0.2em !important; /* Smaller font size for the tagline */
-    color: #666; /* Optional: change the color of the tagline */
+    margin: 20px;
+    font-size: 2em;
+    text-align: center;
+    color: #007bff;
 }
 
 .top-right {
@@ -33,14 +29,52 @@ body {
 .chat-container {
     background-color: #f0f0f0;
     border-radius: 10px;
-    padding: 10px;
-    width: 70%; /* Set width to 70% */
-    max-width: 600px;
-    height: calc(100vh - 120px); /* Height of viewport minus title and input-container height */
+    padding: 20px;
+    width: 70%;
+    max-width: 800px;
+    height: calc(100vh - 150px);
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    margin-bottom: 10px; /* Margin adjusted to avoid overlap with input-container */
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.sample-prompts {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    padding: 10px 0;
+    position: absolute;
+    bottom: 10px;
+    width: calc(100% - 20px);
+    font-size: 12px;
+            
+}
+
+.sample-prompt {
+    background-color: #e0e0e0;
+    color: #333;
+    padding: 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    width: 100%;
+    max-width: 250px;
+    text-align: center;
+    box-sizing: border-box; /* Ensure padding is included in width */
+    flex: 1 1 30%; /* Flex-grow, flex-shrink, flex-basis */
+    transition: background-color 0.3s;
+    height: 60px; /* Set fixed height */
+}
+
+.sample-prompt:hover {
+    background-color: #d4d4d4;
 }
 
 .user-query {
@@ -62,53 +96,35 @@ body {
 }
 
 .input-container {
-    display: flex;
-    width: 70%; /* Set width to 70% */
-    max-width: 600px;
-    background-color: #fff; /* Optional background color */
-    border-top: 1px solid #ccc; /* Optional border */
-    padding: 10px;
-    position: fixed; /* Fix the position at the bottom */
-    bottom: 0; /* Stick to the bottom of the viewport */
-    z-index: 10; /* Ensure it stays above other content */
+    width: 70%;
+    max-width: 800px;
+    padding: 0 20px;
+    position: fixed;
+    bottom: 20px;
+    z-index: 10;
 }
 
-.input-container input {
-    flex: 1;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
+.input-group .form-control {
+    border-radius: 30px 0 0 30px;
 }
 
-.input-container button {
-    padding: 10px;
-    margin-left: 10px;
-    border: none;
-    border-radius: 5px;
-    background-color: #007bff;
-    color: white;
-    cursor: pointer;
+.input-group .input-group-append .btn {
+    border-radius: 0 30px 30px 0;
 }
 
-.input-container button:hover {
-    background-color: #0056b3;
-}
-
-#typing-indicator {
-    font-style: italic;
-    color: #6c757d; /* Adjust the color as needed */
-    padding: 10px;
-    border-radius: 10px;
-    margin: 5px 0;
-    align-self: flex-end;
+.input-group .input-group-append .btn i {
+    font-size: 1.2em;
 }
 
 .sync-btn {
-    padding: 10px;
-    margin-left: 10px;
+    padding: 10px 10px;
     border: none;
     border-radius: 5px;
-    background-color: #767b81;
+    background-color: #878d95;
     color: white;
     cursor: pointer;
+}
+
+.sync-btn:hover {
+    background-color: #5a5e63;
 }

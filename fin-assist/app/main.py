@@ -33,7 +33,7 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %
 logger = logging.getLogger(__name__)
 
 # Directory containing PDF files and persistence directory for vector store
-PDF_DIR = "data/TCA"
+PDF_DIR = "data/TCA-Test"
 PERSIST_DIRECTORY = 'data'
 
 # Global variables
@@ -53,7 +53,12 @@ def extract_text_from_pdfs(pdf_dir):
                     for page_num, page in enumerate(reader.pages):
                         page_text = page.extract_text()
                         if page_text:
-                            page_texts.append((filename, page_num + 1, page_text))
+                            # Include metadata with the document name and page number
+                            page_texts.append({
+                                "filename": filename,
+                                "page_num": page_num + 1,
+                                "content": page_text
+                            })
                             logger.debug(f"Extracted text from page {page_num + 1} of file {filename}")
             except Exception as e:
                 logger.error(f"Error processing file {filepath}: {e}")
@@ -66,7 +71,13 @@ def update_embeddings():
         page_texts = extract_text_from_pdfs(PDF_DIR)
         
         # Create document objects from text pages
-        documents = [Document(page_content=text[2]) for text in page_texts]
+        documents = [
+            Document(
+                page_content=text["content"],
+                metadata={"filename": text["filename"], "page_num": text["page_num"]}
+            )
+            for text in page_texts
+        ]
         
         # Initialize OllamaEmbeddings for embedding generation
         embedding_function = OllamaEmbeddings(model="mxbai-embed-large")
@@ -173,10 +184,22 @@ async def query(query_data: QueryData):
         if qa_chain is None:
             qa_chain = initialize_chroma_and_qa_chain()
         result = qa_chain({"query": query_text})
+        
+        # Extract references (document name and page number) from the results
+        referees = []
+        if "result" in result and "metadata" in result:
+            referees = [
+                {
+                    "filename": doc_metadata["filename"],
+                    "page_num": doc_metadata["page_num"]
+                }
+                for doc_metadata in result["metadata"]
+            ]
+        
         logger.debug(f"Query result: {result}")
         return {
             "answer": result.get("result"),
-            "referees": result.get("referees", []),
+            "referees": referees,
             "suggestions": result.get("suggestions", [])
         }
     except Exception as e:
