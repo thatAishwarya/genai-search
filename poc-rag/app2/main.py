@@ -10,16 +10,35 @@ from langchain_community.vectorstores import Chroma
 from langchain.prompts import PromptTemplate
 from langchain.memory import ConversationBufferMemory
 from langchain.schema import Document
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import RedirectResponse
 
 app = FastAPI()
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Change to restrict access
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Mount static files
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Set up logging configuration
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-# Directory containing PDF files
+# Directory containing PDF files and persistence directory for vector store
 PDF_DIR = "../data/TCA"
 PERSIST_DIRECTORY = 'data'
+
+# Global variables
+vectorstore = None
+qa_chain = None
 
 def extract_text_from_pdfs(pdf_dir):
     logger.info(f"Extracting text from PDFs in directory: {pdf_dir}")
@@ -66,9 +85,14 @@ def update_embeddings():
         raise
 
 def initialize_chroma_and_qa_chain():
+    global vectorstore, qa_chain
+    if qa_chain is not None:
+        logger.info("QA chain already initialized.")
+        return qa_chain
+
     logger.info("Initializing Chroma and QA chain.")
     try:
-        # Always update embeddings
+        # Update embeddings
         vectorstore = update_embeddings()
         
         llm = Ollama(base_url="http://localhost:11434", model="llama3.1", verbose=True)
@@ -111,13 +135,27 @@ def initialize_chroma_and_qa_chain():
         logger.error(f"Error initializing Chroma and QA chain: {e}")
         raise
 
+@app.on_event("startup")
+async def application_start():
+    logger.info("Application startup.")
+    try:
+        global qa_chain
+        # Initialize Chroma and QA chain if not already initialized
+        initialize_chroma_and_qa_chain()
+    except Exception as e:
+        logger.error(f"Error during application startup: {e}")
+        raise HTTPException(status_code=500, detail="Application startup failed")
+
 @app.post("/processdocs")
 async def process_docs():
     logger.info("Processing documents.")
     try:
-        # Update embeddings and reinitialize QA chain
         global qa_chain
-        qa_chain = initialize_chroma_and_qa_chain()
+        # Force update embeddings and reinitialize QA chain
+        if qa_chain is None:
+            qa_chain = initialize_chroma_and_qa_chain()
+        else:
+            logger.info("QA chain already initialized.")
         return {"status": "success"}
     except Exception as e:
         logger.error(f"Error processing documents: {e}")
@@ -131,6 +169,9 @@ async def query(query_data: QueryData):
     query_text = query_data.query
     logger.info(f"Received query: {query_text}")
     try:
+        global qa_chain
+        if qa_chain is None:
+            qa_chain = initialize_chroma_and_qa_chain()
         result = qa_chain({"query": query_text})
         logger.debug(f"Query result: {result}")
         return {
@@ -141,3 +182,7 @@ async def query(query_data: QueryData):
     except Exception as e:
         logger.error(f"Error processing query: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/")
+async def root():
+    return RedirectResponse(url="/static/chatbot.html")
