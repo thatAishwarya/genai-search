@@ -1,9 +1,22 @@
+# fastapi
+# uvicorn
+# PyPDF2
+# sentence-transformers
+# transformers
+# langchain-community
+# streamlit
+# python-dotenv
+# faiss-cpu
+# requests
+
+
+
 fastapi
-uvicorn
+pydantic
 PyPDF2
-sentence-transformers
-transformers
-langchain-community
+langchain
+langchain_community
+requests
 streamlit
-python-dotenv
-faiss-cpu
+
+
