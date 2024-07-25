@@ -13,7 +13,15 @@ body {
 }
 
 .title {
-    margin: 20px;
+    margin: 20px !important;
+    font-size: 0.8em !important; 
+    text-align: center; /* Center-align the title and tagline */
+}
+
+.tagline {
+    display: block; /* Make tagline appear on a new line */
+    font-size: 0.2em !important; /* Smaller font size for the tagline */
+    color: #666; /* Optional: change the color of the tagline */
 }
 
 .top-right {

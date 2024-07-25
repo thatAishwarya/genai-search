@@ -33,7 +33,7 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %
 logger = logging.getLogger(__name__)
 
 # Directory containing PDF files and persistence directory for vector store
-PDF_DIR = "../data/TCA"
+PDF_DIR = "data/TCA"
 PERSIST_DIRECTORY = 'data'
 
 # Global variables

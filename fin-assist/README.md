@@ -33,7 +33,7 @@ FinAssist is a chatbot application designed to assist users with queries related
 Create a folder "genai-search" on your machine
    ```bash
    git clone https://github.com/thatAishwarya/genai-search
-   cd genai-search
+   cd genai-search/fin-assist
    ```
 
 2. **Create and Activate a Virtual Environment (Can be skipped)** 
@@ -78,7 +78,7 @@ Create a folder "genai-search" on your machine
      Ensure the server is running and accessible on the default port (11434) or the port you specify.
 
 5. **Start the FastAPI Server**
-
+   cd app
    ```bash
    uvicorn app:app --reload
    ```

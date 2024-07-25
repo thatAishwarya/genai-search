@@ -6,7 +6,7 @@ function addMessage(message, type) {
     const chatContainer = document.getElementById('chat-container');
     const messageDiv = document.createElement('div');
     messageDiv.classList.add(type);
-    messageDiv.innerHTML = message;
+    messageDiv.innerHTML = message; // Ensure HTML is correctly rendered
     chatContainer.appendChild(messageDiv);
     chatContainer.scrollTop = chatContainer.scrollHeight; // Scroll to the bottom
 }
@@ -62,17 +62,27 @@ document.getElementById('submit-btn').addEventListener('click', async () => {
             // Hide typing indicator
             hideTypingIndicator();
 
-            // Format bot response
-            let botMessage = `**Answer:** ${responseData.answer || "No answer found."}\n\n`;
+            // Format bot response as HTML
+            let botMessage = `<strong>Answer:</strong> ${responseData.answer || "No answer found."}<br><br>`;
+
             if (responseData.referees && responseData.referees.length > 0) {
-                botMessage += `**Referees:** ${responseData.referees.join(', ')}\n\n`;
+                botMessage += `<strong>Referees:</strong><ul>`;
+                responseData.referees.forEach(referee => {
+                    botMessage += `<li>${referee}</li>`;
+                });
+                botMessage += `</ul><br>`;
             } else {
-                botMessage += "No referees found.\n\n";
+                botMessage += `No referees found.<br><br>`;
             }
+
             if (responseData.suggestions && responseData.suggestions.length > 0) {
-                botMessage += `**Suggested Queries:** ${responseData.suggestions.join(', ')}`;
+                botMessage += `<strong>Suggested Queries:</strong><ul>`;
+                responseData.suggestions.forEach(suggestion => {
+                    botMessage += `<li>${suggestion}</li>`;
+                });
+                botMessage += `</ul>`;
             } else {
-                botMessage += "No suggestions available.";
+                botMessage += `No suggestions available.`;
             }
 
             addMessage(botMessage, "bot-message");

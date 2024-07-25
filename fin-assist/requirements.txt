@@ -1,0 +1,8 @@
+fastapi
+pydantic
+PyPDF2
+langchain
+langchain_community
+requests
+streamlit
+chromadb
