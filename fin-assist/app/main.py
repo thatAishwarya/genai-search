@@ -25,17 +25,17 @@ SETTINGS = {
         "gpt-3.5-turbo": "data/gpt-3.5-turbo"
     },
     "LLM_MODELS": {
-        # "llama3.1": {    #Commenting this option, uncomment for demo
-        #     "llm": Ollama,
-        #     "embedding": OllamaEmbeddings,
-        #     "embedding_model": "mxbai-embed-large",
-        #     "model_name": "llama3.1"
-        # },
-        "gpt-3.5-turbo": {
-            "embedding": OpenAIEmbeddings,
-            "embedding_model": "text-embedding-3-small",
-            "model_name": "gpt-3.5-turbo"
-        }
+        "llama3.1": {    #Commenting this option, uncomment for demo
+            "llm": Ollama,
+            "embedding": OllamaEmbeddings,
+            "embedding_model": "mxbai-embed-large",
+            "model_name": "llama3.1"
+        },
+        # "gpt-3.5-turbo": {      #Commenting this option, uncomment for demo
+        #     "embedding": OpenAIEmbeddings,
+        #     "embedding_model": "text-embedding-3-small",
+        #     "model_name": "gpt-3.5-turbo"
+        # }
     },
     "DEFAULT_MODEL": "llama3.1",
     "LLM_BASE_URL": "http://localhost:11434",
