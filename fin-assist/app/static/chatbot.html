@@ -8,38 +8,12 @@
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
-    <style>
-        .top-right {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .dropdown-container {
-            margin-left: 10px;
-        }
-        .small-dropdown {
-            width: auto;
-            font-size: 0.8rem; /* Smaller font size for the dropdown */
-        }
-        .input-container {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .input-container .form-control {
-            flex: 1;
-        }
-    </style>
-    <!-- Bootstrap JS and dependencies -->
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </head>
 <body>
-    <h1 class="title">
-        <b>FinAssist:</b> Find Solutions in Your Financial Files
-    </h1>
-    <div class="top-right">
+    <div class="top-bar">
+        <h1 class="title">
+            <b>FinAssist:</b> Find Solutions in Your Financial Files
+        </h1>
         <button id="sync-docs-btn" class="sync-btn"><i class="fas fa-sync-alt"></i> Refresh Docs</button>
     </div>
     <div class="chat-container" id="chat-container">
@@ -52,21 +26,20 @@
     </div>
     <div class="input-container">
         <div class="dropdown-container">
-            <!-- <label for="model-select" class="d-inline">Select Model:</label> -->
             <select id="model-select" class="form-control small-dropdown">
                 <option value="llama3.1">Llama 3.1</option>
                 <option value="gpt-3.5-turbo">GPT 3.5 Turbo</option>
             </select>
         </div>
         <input type="text" id="user-query" class="form-control" placeholder="Enter your query here">
-      
         <button id="submit-btn" class="btn btn-primary">
             <i class="fas fa-paper-plane"></i>
         </button>
     </div>
 
+    <!-- Bootstrap JS and dependencies -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
