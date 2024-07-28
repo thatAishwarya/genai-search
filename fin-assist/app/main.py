@@ -81,6 +81,7 @@ async def query(query_data: QueryData):
     query_text = query_data.query
     model_key = query_data.model
     logger.info(f"Received query: {query_text} for model: {model_key}")
+    logger.info(f"QA Chain: {qa_chains} for vectorstores: {vectorstores}")
     try:
         # Create QA chain if it does not exist for the requested model
         if model_key not in qa_chains:

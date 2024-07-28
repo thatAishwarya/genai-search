@@ -1,21 +1,13 @@
 
 # FinAssist
 
-FinAssist is a chatbot application designed to assist users with queries related to financial documents. The chatbot leverages natural language processing and embeddings to provide relevant responses based on the content of the uploaded documents.
+FinAssist is a chatbot application designed to assist users with queries related to financial regulation documents related to Tax Consolidation Act. 
 
 ## Features
 
 - **Chat Interface**: A web-based chat interface for interacting with the chatbot.
 - **Document Synchronization**: Syncs and processes documents to update the chatbot's knowledge base.
 - **Natural Language Understanding**: Uses embeddings and retrieval mechanisms to answer user queries accurately.
-
-## Project Structure
-
-- `main.py`: FastAPI backend for document processing and chatbot queries.
-- `static/`: Contains static files (HTML, CSS, JavaScript) for the front-end interface.
-- `data/`: Directory for storing PDF documents and vector store data.
-- `chatbot.js`: JavaScript file for handling chat interactions and API calls.
-- `static/css/style.css`: CSS file for styling the chat interface.
 
 ## Prerequisites
 
@@ -80,7 +72,7 @@ Create a folder "genai-search" on your machine
 5. **Start the FastAPI Server**
    cd app
    ```bash
-   uvicorn app:app --reload
+   uvicorn main:app --reload
    ```
 
 ### Front-End Setup
@@ -130,13 +122,3 @@ If tests are available, you can run them using:
 ```bash
 pytest
 ```
-
-
-## Acknowledgments
-
-- **LangChain**: For providing powerful NLP capabilities.
-- **Chroma**: For the vector store functionalities.
-
----
-
-Feel free to adjust or expand this `README.md` based on specific details or additional requirements of your project.

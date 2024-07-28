@@ -8,9 +8,7 @@ from langchain_community.vectorstores import Chroma
 from langchain.prompts import PromptTemplate
 from langchain.memory import ConversationBufferMemory
 from langchain.schema import Document
-
-
-from helpers import document_reader 
+from helpers import document_reader
 from app_config import SETTINGS
 from logging_config import setup_logging
 
@@ -22,7 +20,7 @@ def update_embeddings(model_key):
     try:
         # Extract text from PDFs
         page_texts = document_reader.extract_text_from_pdfs(SETTINGS["PDF_DIR"])
-        
+
         # Create document objects from text pages
         documents = [
             Document(
@@ -31,19 +29,19 @@ def update_embeddings(model_key):
             )
             for text in page_texts
         ]
-        
+
         # Select embedding model and directory based on the selected model
         model_config = SETTINGS["LLM_MODELS"][model_key]
-        
+
         if model_key == "llama3.1":
             embedding_function = OllamaEmbeddings(model=model_config["embedding_model"])
         elif model_key == "gpt-3.5-turbo":
             embedding_function = OpenAIEmbeddings(model=model_config["embedding_model"], openai_api_key=SETTINGS["OPENAI_API_KEY"])
         else:
             raise ValueError(f"Unsupported model key: {model_key}")
-        
+
         persist_directory = SETTINGS["PERSIST_DIRECTORIES"][model_key]
-        
+
         # Create or update vector store
         vectorstore = Chroma.from_documents(
             documents=documents, 
@@ -91,28 +89,30 @@ def create_qa_chain(model_key, vectorstores, qa_chains):
         if not vectorstore:
             logger.error(f"Vector store for {model_key} not found.")
             raise ValueError(f"Vector store for {model_key} not found.")
-        
+
         model_config = SETTINGS["LLM_MODELS"][model_key]
         if model_key == "gpt-3.5-turbo":
             llm = ChatOpenAI(model=model_config["model_name"], openai_api_key=SETTINGS["OPENAI_API_KEY"])
         else:
             llm = Ollama(base_url=SETTINGS["LLM_BASE_URL"], model=model_config["model_name"], verbose=True)
-        
+
+        # Create a retriever from the vector store
         retriever = vectorstore.as_retriever()
 
+        # Create a prompt template based on the settings
         prompt = PromptTemplate(
             input_variables=["history", "context", "question"],
             template=SETTINGS["PROMPT_TEMPLATE"],
         )
-        
+
+        # Set up memory for conversation history
         memory = ConversationBufferMemory(
             memory_key="history",
             return_messages=True,
             input_key="question"
         )
-        logger.info("Initialize RetrievalQA chain")
-        
-        # Initialize RetrievalQA chain
+
+        # Initialize the RetrievalQA chain
         qa_chain = RetrievalQA.from_chain_type(
             llm=llm,
             chain_type='stuff',
