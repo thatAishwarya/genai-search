@@ -115,6 +115,49 @@ async def query(query_data: QueryData):
         logger.error(f"Error processing query: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+class CompareQueryData(BaseModel):
+    query: str
+
+@app.post("/compare")
+async def compare(query_data: CompareQueryData):
+    global vectorstores, qa_chains
+    query_text = query_data.query
+    logger.info(f"Received query for comparison: {query_text}")
+    
+    try:
+        responses = {}
+        
+        for model_key in SETTINGS["LLM_MODELS"].keys():
+            if model_key not in qa_chains:
+                logger.info(f"Creating chain for model: {model_key}")
+                qa_chains = search.create_qa_chain(model_key, vectorstores, qa_chains)
+            
+            logger.info(f"Processing query with model: {model_key}")
+            qa_chain = qa_chains[model_key]
+            result = qa_chain({"query": query_text})
+            
+            # Extract references (document name and page number) from the results
+            referees = []
+            if "result" in result and "metadata" in result:
+                referees = [
+                    {
+                        "filename": doc_metadata["filename"],
+                        "page_num": doc_metadata["page_num"]
+                    }
+                    for doc_metadata in result["metadata"]
+                ]
+            
+            responses[model_key] = {
+                "answer": result.get("result"),
+                "referees": referees,
+                "suggestions": result.get("suggestions", [])
+            }
+        
+        return responses
+    except Exception as e:
+        logger.error(f"Error processing comparison query: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get("/")
 async def root():
     return RedirectResponse(url="/static/chatbot.html")

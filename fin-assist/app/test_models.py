@@ -1,9 +1,8 @@
 import pytest
 import time
 import requests
-from langchain.evaluation import load_evaluator
-from langchain.evaluation import EvaluatorType
-from langchain_community.llms import Ollama
+from langchain.evaluation import load_evaluator, EvaluatorType
+from langchain_groq import ChatGroq
 from langchain_openai import ChatOpenAI
 from app_config import SETTINGS
 from logging_config import setup_logging
@@ -13,16 +12,33 @@ QUERY_ENDPOINT = "http://127.0.0.1:8000/query"
 # Initialize logging
 logger = setup_logging()
 
-llm1 = Ollama(base_url=SETTINGS["LLM_BASE_URL"], model=SETTINGS["LLM_MODELS"]["llama3.1"]["model_name"], verbose=True)
+# Initialize models
+llm1 = ChatGroq(model=SETTINGS["LLM_MODELS"]["llama3.1"]["model_name"], api_key=SETTINGS["GROQ_API_KEY"])
 llm2 = ChatOpenAI(model=SETTINGS["LLM_MODELS"]["gpt-3.5-turbo"]["model_name"], openai_api_key=SETTINGS["OPENAI_API_KEY"])
 
-def evaluate_string_by_criteria(criteria, prediction, input_string, llm=llm2):
-    evaluator = load_evaluator(EvaluatorType.CRITERIA, criteria=criteria, llm=llm)
+# Initialize evaluators
+criteria = {
+    "relevance": "Is the submission referring to a real quote from the text?",
+    "correctness": "Is the submission correct, accurate, and factual?",
+    "coherence": "Is the submission coherent, well-structured, and organized?",
+    "conciseness": "Is the submission concise and to the point?"
+}
+
+evaluator_criteria_llama = load_evaluator(EvaluatorType.CRITERIA, criteria=criteria, llm=llm1)
+evaluator_criteria_gpt = load_evaluator(EvaluatorType.CRITERIA, criteria=criteria, llm=llm2)
+
+def evaluate_string_by_criteria(criteria, prediction, input_string, evaluator):
     eval_result = evaluator.evaluate_strings(
         prediction=prediction,
         input=input_string,
     )
     return eval_result
+
+def measure_time(func, *args, **kwargs):
+    start_time = time.time()
+    result = func(*args, **kwargs)
+    elapsed_time = time.time() - start_time
+    return result, elapsed_time
 
 def test_query_similarity():
     sample_query = "What penalties are imposed on companies for non-compliance under the Taxes Consolidation Act, 1997?"
@@ -38,72 +54,73 @@ def test_query_similarity():
                         
     and section 1081 shall not apply in consequence of any discharge or repayment for giving effect to the relief."""
 
-    # Call the /query endpoint for model 1
-    start_time_model_1 = time.time()
-    response_model_1 = requests.post(QUERY_ENDPOINT, json={"query": sample_query, "model": "llama3.1"})
-    end_time_model_1 = time.time()
-    assert response_model_1.status_code == 200
-    model_1_answer = response_model_1.json().get("answer", "No answer found.")
-    time_taken_model_1 = end_time_model_1 - start_time_model_1
+    try:
+        # Call the /query endpoint for model 1
+        model_1_response, time_taken_model_1 = measure_time(requests.post, QUERY_ENDPOINT, json={"query": sample_query, "model": "llama3.1"})
+        assert model_1_response.status_code == 200
+        model_1_answer = model_1_response.json().get("answer", "No answer found.")
+    except requests.RequestException as e:
+        logger.error(f"Request failed for llama3.1: {e}")
+        pytest.fail(f"Request failed for llama3.1: {e}")
 
-    # Log the response for debugging
     logger.debug(f"llama3.1 answer: {model_1_answer}")
 
-    # Call the /query endpoint for model 2
-    start_time_model_2 = time.time()
-    response_model_2 = requests.post(QUERY_ENDPOINT, json={"query": sample_query, "model": "gpt-3.5-turbo"})
-    end_time_model_2 = time.time()
-    assert response_model_2.status_code == 200
-    model_2_answer = response_model_2.json().get("answer", "No answer found.")
-    time_taken_model_2 = end_time_model_2 - start_time_model_2
+    try:
+        # Call the /query endpoint for model 2
+        model_2_response, time_taken_model_2 = measure_time(requests.post, QUERY_ENDPOINT, json={"query": sample_query, "model": "gpt-3.5-turbo"})
+        assert model_2_response.status_code == 200
+        model_2_answer = model_2_response.json().get("answer", "No answer found.")
+    except requests.RequestException as e:
+        logger.error(f"Request failed for gpt-3.5-turbo: {e}")
+        pytest.fail(f"Request failed for gpt-3.5-turbo: {e}")
 
-    # Log the response for debugging
     logger.debug(f"gpt-3.5-turbo answer: {model_2_answer}")
 
-    # Define criteria for evaluation
-    criteria = {
-        "relevance": "Is the submission referring to a real quote from the text?",
-        "correctness": "Is the submission correct, accurate, and factual?",
-        "coherence": "Is the submission coherent, well-structured, and organized?",
-        "conciseness": "Is the submission concise and to the point?"
-    }
+    # Evaluate responses using both evaluators
+    results_model_1_llama_criteria, time_taken_model_1_llama = measure_time(
+        evaluate_string_by_criteria, criteria, model_1_answer, sample_query, evaluator_criteria_llama
+    )
+    results_model_2_gpt_criteria, time_taken_model_2_gpt = measure_time(
+        evaluate_string_by_criteria, criteria, model_2_answer, sample_query, evaluator_criteria_gpt
+    )
 
-    # Evaluate responses using LangChain criteria evaluators
-    eval_result_model_1 = evaluate_string_by_criteria(criteria, model_1_answer, sample_query)
-    eval_result_model_2 = evaluate_string_by_criteria(criteria, model_2_answer, sample_query)
-
-    logger.debug(f"Evaluation result for llama3.1: {eval_result_model_1}")
-    logger.debug(f"Evaluation result for gpt-3.5-turbo: {eval_result_model_2}")
-
-    # Extract individual criteria results
-    # model_1_fulfilled_criteria = {criterion: result for criterion, result in eval_result_model_1.items() if result["value"] == 'Y'}
-    # model_2_fulfilled_criteria = {criterion: result for criterion, result in eval_result_model_2.items() if result["value"] == 'Y'}
-
-    # logger.debug(f"Model 1 fulfilled criteria: {model_1_fulfilled_criteria}")
-    # logger.debug(f"Model 2 fulfilled criteria: {model_2_fulfilled_criteria}")
+    logger.debug(f"Evaluation result for llama3.1 using llama evaluator: {results_model_1_llama_criteria}")
+    logger.debug(f"Evaluation result for gpt-3.5-turbo using gpt evaluator: {results_model_2_gpt_criteria}")
 
     # Check similarity of each model's answer with the standard answer
-    similarity_model_1_to_standard = evaluate_string_by_criteria(criteria, model_1_answer, standard_answer)["score"]
-    similarity_model_2_to_standard = evaluate_string_by_criteria(criteria, model_2_answer, standard_answer)["score"]
+    similarity_model_1_to_standard_llama, _ = measure_time(
+        evaluate_string_by_criteria, criteria, model_1_answer, standard_answer, evaluator_criteria_llama
+    )
+    similarity_model_2_to_standard_gpt, _ = measure_time(
+        evaluate_string_by_criteria, criteria, model_2_answer, standard_answer, evaluator_criteria_gpt
+    )
 
-    logger.debug(f"Similarity llama3.1 to Standard: {similarity_model_1_to_standard}")
-    logger.debug(f"Similarity gpt-3.5-turbo to Standard: {similarity_model_2_to_standard}")
+    logger.debug(f"Similarity llama3.1 to Standard using llama evaluator: {similarity_model_1_to_standard_llama['score']}")
+    logger.debug(f"Similarity gpt-3.5-turbo to Standard using gpt evaluator: {similarity_model_2_to_standard_gpt['score']}")
 
     # Check similarity of both model answers with each other
-    similarity_model_1_to_model_2 = evaluate_string_by_criteria(criteria, model_1_answer, model_2_answer)["score"]
+    similarity_model_1_to_model_2_llama, _ = measure_time(
+        evaluate_string_by_criteria, criteria, model_1_answer, model_2_answer, evaluator_criteria_llama
+    )
+    similarity_model_1_to_model_2_gpt, _ = measure_time(
+        evaluate_string_by_criteria, criteria, model_1_answer, model_2_answer, evaluator_criteria_gpt
+    )
 
-    logger.debug(f"Similarity llama3.1 to gpt-3.5-turbo: {similarity_model_1_to_model_2}")
+    logger.debug(f"Similarity llama3.1 to gpt-3.5-turbo using llama evaluator: {similarity_model_1_to_model_2_llama['score']}")
+    logger.debug(f"Similarity llama3.1 to gpt-3.5-turbo using gpt evaluator: {similarity_model_1_to_model_2_gpt['score']}")
 
     logger.debug(f"Time taken by llama3.1: {time_taken_model_1} seconds")
     logger.debug(f"Time taken by gpt-3.5-turbo: {time_taken_model_2} seconds")
 
-    assert similarity_model_1_to_standard >= 0.9  # Replace with desired threshold
-    assert similarity_model_2_to_standard >= 0.9  # Replace with desired threshold
-    assert similarity_model_1_to_model_2 >= 0.9  # Replace with desired threshold
+    # Assertions
+    assert similarity_model_1_to_standard_llama['score'] >= 0.9, "llama3.1 to Standard (llama evaluator) below threshold"
+    assert similarity_model_2_to_standard_gpt['score'] >= 0.9, "gpt-3.5-turbo to Standard (gpt evaluator) below threshold"
+    assert similarity_model_1_to_model_2_llama['score'] >= 0.9, "llama3.1 to gpt-3.5-turbo (llama evaluator) below threshold"
+    assert similarity_model_1_to_model_2_gpt['score'] >= 0.9, "llama3.1 to gpt-3.5-turbo (gpt evaluator) below threshold"
 
     # Optionally assert time taken if needed
-    # assert time_taken_model_1 <= 15
-    # assert time_taken_model_2 <= 15
+    assert time_taken_model_1 <= 15, "Time taken by llama3.1 exceeds threshold"
+    assert time_taken_model_2 <= 15, "Time taken by gpt-3.5-turbo exceeds threshold"
 
 if __name__ == "__main__":
     pytest.main()
