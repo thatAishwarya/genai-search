@@ -1,10 +1,9 @@
 import os
 from langchain.chains import RetrievalQA
-from langchain_community.llms import Ollama
-from langchain.embeddings import OllamaEmbeddings
-from langchain_openai import ChatOpenAI
-from langchain_openai import OpenAIEmbeddings
-from langchain_community.vectorstores import Chroma
+from langchain.embeddings import HuggingFaceEmbeddings
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from langchain_groq import ChatGroq
+from langchain.vectorstores import Chroma
 from langchain.prompts import PromptTemplate
 from langchain.memory import ConversationBufferMemory
 from langchain.schema import Document
@@ -34,7 +33,7 @@ def update_embeddings(model_key):
         model_config = SETTINGS["LLM_MODELS"][model_key]
 
         if model_key == "llama3.1":
-            embedding_function = OllamaEmbeddings(model=model_config["embedding_model"])
+            embedding_function = HuggingFaceEmbeddings(model_name=model_config["embedding_model"])
         elif model_key == "gpt-3.5-turbo":
             embedding_function = OpenAIEmbeddings(model=model_config["embedding_model"], openai_api_key=SETTINGS["OPENAI_API_KEY"])
         else:
@@ -45,7 +44,7 @@ def update_embeddings(model_key):
         # Create or update vector store
         vectorstore = Chroma.from_documents(
             documents=documents, 
-            embedding=embedding_function,
+            embedding_function=embedding_function,
             persist_directory=persist_directory
         )
         logger.info(f"Vector store for {model_key} created or updated and persisted.")
@@ -67,7 +66,7 @@ def load_vectorstores(vectorstores):
                 if model_key == "gpt-3.5-turbo":
                     embedding_function = OpenAIEmbeddings(model=model_config["embedding_model"], openai_api_key=SETTINGS["OPENAI_API_KEY"])
                 else:
-                    embedding_function = OllamaEmbeddings(model=model_config["embedding_model"])
+                    embedding_function = HuggingFaceEmbeddings(model_name=model_config["embedding_model"])
                 vectorstores[model_key] = Chroma(persist_directory=persist_directory, embedding_function=embedding_function)
             else:
                 logger.info(f"No existing vector store found for model {model_key}.")
@@ -94,7 +93,7 @@ def create_qa_chain(model_key, vectorstores, qa_chains):
         if model_key == "gpt-3.5-turbo":
             llm = ChatOpenAI(model=model_config["model_name"], openai_api_key=SETTINGS["OPENAI_API_KEY"])
         else:
-            llm = Ollama(base_url=SETTINGS["LLM_BASE_URL"], model=model_config["model_name"], verbose=True)
+            llm = ChatGroq(model=model_config["model_name"], api_key=SETTINGS["GROQ_API_KEY"])
 
         # Create a retriever from the vector store
         retriever = vectorstore.as_retriever()

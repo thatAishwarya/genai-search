@@ -8,3 +8,4 @@ streamlit
 chromadb
 langchain-openai
 pytest
+langchain_groq

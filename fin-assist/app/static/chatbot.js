@@ -187,6 +187,7 @@ document.getElementById('submit-btn').addEventListener('click', async () => {
             //     botMessage += `No suggestions available.`;
             // }
             addMessage(botMessage, "bot-message");
+            document.getElementById('sample-prompts').style.display = 'none';
         } catch (error) {
             // Hide typing indicator
             hideTypingIndicator();
