@@ -117,6 +117,7 @@ def create_qa_chain(model_key, vectorstores, qa_chains):
             chain_type='stuff',
             retriever=retriever,
             verbose=True,
+            return_source_documents=True,
             chain_type_kwargs={
                 "verbose": True,
                 "prompt": prompt,

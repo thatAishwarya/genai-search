@@ -22,6 +22,7 @@ app.add_middleware(
 
 # Mount static files
 app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/data/TCA", StaticFiles(directory="data/TCA"), name="data")
 
 # Initialize logging
 logger = setup_logging()
@@ -92,23 +93,24 @@ async def query(query_data: QueryData):
         qa_chain = qa_chains[model_key]
         logger.info("Getting Result")
         result = qa_chain({"query": query_text})
-        
-        logger.info("Refining Result")
+    
         # Extract references (document name and page number) from the results
-        referees = []
-        if "result" in result and "metadata" in result:
-            referees = [
-                {
-                    "filename": doc_metadata["filename"],
-                    "page_num": doc_metadata["page_num"]
-                }
-                for doc_metadata in result["metadata"]
-            ]
+        references = []
+        if "source_documents" in result:
+            source_docs = result["source_documents"]
+            if isinstance(source_docs, list):
+                references = [
+                    {
+                        "filename": doc.metadata.get("filename", "Unknown"),
+                        "page_num": doc.metadata.get("page_num", "Unknown")
+                    }
+                    for doc in source_docs if hasattr(doc, "metadata") and isinstance(doc.metadata, dict)
+                ]
         
         logger.debug(f"Query result: {result}")
         return {
-            "answer": result.get("result"),
-            "referees": referees,
+            "answer": result.get("result", "No answer provided"),
+            "references": references,
             "suggestions": result.get("suggestions", [])
         }
     except Exception as e:
@@ -126,7 +128,6 @@ async def compare(query_data: CompareQueryData):
     
     try:
         responses = {}
-        
         for model_key in SETTINGS["LLM_MODELS"].keys():
             if model_key not in qa_chains:
                 logger.info(f"Creating chain for model: {model_key}")
@@ -135,21 +136,22 @@ async def compare(query_data: CompareQueryData):
             logger.info(f"Processing query with model: {model_key}")
             qa_chain = qa_chains[model_key]
             result = qa_chain({"query": query_text})
-            
-            # Extract references (document name and page number) from the results
-            referees = []
-            if "result" in result and "metadata" in result:
-                referees = [
-                    {
-                        "filename": doc_metadata["filename"],
-                        "page_num": doc_metadata["page_num"]
-                    }
-                    for doc_metadata in result["metadata"]
-                ]
+             # Extract references (document name and page number) from the results
+            references = []
+            if "source_documents" in result:
+                source_docs = result["source_documents"]
+                if isinstance(source_docs, list):
+                    references = [
+                        {
+                            "filename": doc.metadata.get("filename", "Unknown"),
+                            "page_num": doc.metadata.get("page_num", "Unknown")
+                        }
+                        for doc in source_docs if hasattr(doc, "metadata") and isinstance(doc.metadata, dict)
+                    ]
             
             responses[model_key] = {
                 "answer": result.get("result"),
-                "referees": referees,
+                "references": references,
                 "suggestions": result.get("suggestions", [])
             }
         
