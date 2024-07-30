@@ -4,7 +4,7 @@ html, body {
     height: 100%;
     overflow: hidden;
     color: black;
-    font-family: sans-serif;
+    font-family: "sans-serif typeface";
 }
 
 body {
@@ -88,7 +88,7 @@ body {
 }
 
 .sample-prompt {
-    background-color: #fff3cd;
+    background-color: #86BC25	;
     color: #333;
     padding: 15px;
     border-radius: 5px;
@@ -102,15 +102,16 @@ body {
     height: 60px;
     border: 1px solid #ddd;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    font-weight: 600;
 }
 
 .sample-prompt:hover {
-    background-color: #f7e5a2;
+    background-color: #a6f517;
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
 }
 
 .user-query {
-    background-color: #fff3cd;
+    background-color: #86BC25	;
     padding: 10px;
     border-radius: 10px;
     margin: 5px 0;

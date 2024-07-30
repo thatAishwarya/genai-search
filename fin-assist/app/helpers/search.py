@@ -44,7 +44,7 @@ def update_embeddings(model_key):
         # Create or update vector store
         vectorstore = Chroma.from_documents(
             documents=documents, 
-            embedding_function=embedding_function,
+            embedding=embedding_function,
             persist_directory=persist_directory
         )
         logger.info(f"Vector store for {model_key} created or updated and persisted.")
@@ -67,7 +67,7 @@ def load_vectorstores(vectorstores):
                     embedding_function = OpenAIEmbeddings(model=model_config["embedding_model"], openai_api_key=SETTINGS["OPENAI_API_KEY"])
                 else:
                     embedding_function = HuggingFaceEmbeddings(model_name=model_config["embedding_model"])
-                vectorstores[model_key] = Chroma(persist_directory=persist_directory, embedding_function=embedding_function)
+                vectorstores[model_key] = Chroma(persist_directory=persist_directory, embedding=embedding_function)
             else:
                 logger.info(f"No existing vector store found for model {model_key}.")
         logger.info("All vector stores loaded.")
