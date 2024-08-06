@@ -19,8 +19,8 @@
     <div class="chat-container" id="chat-container">
         <div class="chat-messages"></div>
         <div class="sample-prompts" id="sample-prompts">
-            <div class="sample-prompt" data-query="Explain tax relief withdrawal in section 505?">Explain tax relief withdrawal in section 505?</div>
-            <div class="sample-prompt" data-query="Eligible expenditures under TCA 1997?">Eligible expenditures under TCA 1997?</div>
+            <div class="sample-prompt" data-query="What penalties are imposed on companies for non-compliance under TCA 1997?">Penalties imposed on companies for non-compliance?</div>
+            <div class="sample-prompt" data-query="What expenditures are eligible for tax relief under TCA 1997">Expenditures eligible for tax relief under TCA 1997?</div>
             <div class="sample-prompt" data-query="Tax implications of foreign inheritance?">Tax implications of foreign inheritance?</div>
         </div>
     </div>
@@ -31,6 +31,10 @@
                 <option value="gpt-3.5-turbo">GPT 3.5 Turbo</option>
                 <option value="compare-both">Compare Both</option>
             </select>
+        </div>
+        <div class="attachment-icon" id="attachment-icon">
+            <i class="fas fa-paperclip"></i>
+            <input type="file" id="file-upload">
         </div>
         <input type="text" id="user-query" class="form-control" placeholder="Enter your query here">
         <button id="submit-btn" class="btn btn-primary">

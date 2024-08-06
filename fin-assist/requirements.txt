@@ -4,8 +4,8 @@ PyPDF2
 langchain
 langchain_community
 requests
-streamlit
 chromadb
 langchain-openai
 pytest
 langchain_groq
+llmlingua

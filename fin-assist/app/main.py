@@ -1,4 +1,5 @@
 import os
+import time
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
@@ -83,6 +84,7 @@ async def query(query_data: QueryData):
     model_key = query_data.model
     logger.info(f"Received query: {query_text} for model: {model_key}")
     logger.info(f"QA Chain: {qa_chains} for vectorstores: {vectorstores}")
+    start_time = time.time()
     try:
         # Create QA chain if it does not exist for the requested model
         if model_key not in qa_chains:
@@ -108,10 +110,13 @@ async def query(query_data: QueryData):
                 ]
         
         logger.debug(f"Query result: {result}")
+        end_time = time.time()
+        elapsed_time = end_time - start_time
         return {
             "answer": result.get("result", "No answer provided"),
             "references": references,
-            "suggestions": result.get("suggestions", [])
+            "suggestions": result.get("suggestions", []),
+            "time_taken": elapsed_time
         }
     except Exception as e:
         logger.error(f"Error processing query: {e}")
@@ -129,6 +134,7 @@ async def compare(query_data: CompareQueryData):
     try:
         responses = {}
         for model_key in SETTINGS["LLM_MODELS"].keys():
+            start_time = time.time()
             if model_key not in qa_chains:
                 logger.info(f"Creating chain for model: {model_key}")
                 qa_chains = search.create_qa_chain(model_key, vectorstores, qa_chains)
@@ -149,10 +155,14 @@ async def compare(query_data: CompareQueryData):
                         for doc in source_docs if hasattr(doc, "metadata") and isinstance(doc.metadata, dict)
                     ]
             
+            end_time = time.time()
+            elapsed_time = end_time - start_time
+            
             responses[model_key] = {
                 "answer": result.get("result"),
                 "references": references,
-                "suggestions": result.get("suggestions", [])
+                "suggestions": result.get("suggestions", []),
+                "time_taken": elapsed_time
             }
         
         return responses

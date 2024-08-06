@@ -7,6 +7,8 @@ from langchain_community.vectorstores.chroma import Chroma
 from langchain.prompts import PromptTemplate
 from langchain.memory import ConversationBufferMemory
 from langchain.schema import Document
+from langchain.retrievers import ContextualCompressionRetriever
+from langchain_community.document_compressors import LLMLinguaCompressor
 from helpers import document_reader
 from app_config import SETTINGS
 from logging_config import setup_logging
@@ -98,6 +100,17 @@ def create_qa_chain(model_key, vectorstores, qa_chains):
         # Create a retriever from the vector store
         retriever = vectorstore.as_retriever()
 
+        # Initialize the compressor
+        compressor = LLMLinguaCompressor(model_name="openai-community/gpt2", device_map="cpu")
+
+        # Wrap the retriever with the compressor
+        compression_retriever = ContextualCompressionRetriever(
+            base_compressor=compressor, 
+            base_retriever=retriever,
+            compress_queries=True,
+            compress_documents=False
+        )
+
         # Create a prompt template based on the settings
         prompt = PromptTemplate(
             input_variables=["history", "context", "question"],
@@ -106,7 +119,7 @@ def create_qa_chain(model_key, vectorstores, qa_chains):
 
         # Set up memory for conversation history
         memory = ConversationBufferMemory(
-            memory_key="history",
+            memory_key="summary_memory",
             return_messages=True,
             input_key="question"
         )

@@ -25,7 +25,7 @@ SETTINGS = {
     "LLM_BASE_URL": "http://localhost:11434",
     "PROMPT_TEMPLATE": """You are a knowledgeable chatbot, here to help with questions of the user. Your tone should be professional and informative.
         Context: {context}
-        History: {history}
+        History: {summary_memory}
         User: {question}
         Chatbot:""",
     "LOGGING_LEVEL": logging.DEBUG,
