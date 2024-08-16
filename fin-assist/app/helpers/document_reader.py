@@ -5,6 +5,9 @@ from logging_config import setup_logging
 # Initialize logging
 logger = setup_logging()
 
+'''
+Extract the text from pdf documents. This is a preparatory step before embedding creation.
+'''
 def extract_text_from_pdfs(pdf_dir):
     logger.info(f"Extracting text from PDFs in directory: {pdf_dir}")
     page_texts = []

@@ -3,7 +3,7 @@ html, body {
     padding: 0;
     height: 100%;
     overflow: hidden;
-    color: black;
+    color: #000;
     font-family: "sans-serif typeface";
 }
 
@@ -35,11 +35,11 @@ body {
 .top-bar .title {
     font-size: 1.5em;
     font-weight: bold;
-    color: black; 
+    color: #000; 
 }
 
 .top-bar .sync-btn {
-    background-color: black;
+    background-color: #000;
     color: #fff;
     border: none;
     border-radius: 5px;
@@ -48,6 +48,7 @@ body {
     cursor: pointer;
     transition: background-color 0.3s;
     margin-right: 6px;
+    display: none;
 }
 
 .top-bar .sync-btn:hover {
@@ -115,7 +116,7 @@ body {
     padding: 10px;
     border-radius: 10px;
     margin: 5px 0;
-    color: black;
+    color: #000;
     align-self: flex-start;
 }
 
@@ -123,7 +124,7 @@ body {
     padding: 10px;
     border-radius: 10px;
     margin: 5px 0;
-    color: black;
+    color: #000;
     align-self: flex-end;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     transition: box-shadow 0.3s, transform 0.3s;
@@ -156,11 +157,11 @@ body {
 
 .btn-primary {
     color: #fff;
-    background-color: black;
-    border-color: black;
+    background-color: #000;
+    border-color: #000;
 }
 
-.btn-primary:hover {
+.btn-primary:hover, .btn-primary:focus{
     background-color: #333; 
 }
 
@@ -187,6 +188,7 @@ body {
     padding-right: 3rem; /* Make space for the icon */
 }
 .input-container .attachment-icon {
+    display: none;
     cursor: pointer;
     
 }

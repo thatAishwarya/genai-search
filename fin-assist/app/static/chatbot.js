@@ -7,10 +7,6 @@ const config = {
     DATA_DIRECTORY: '../data/TCA/'
 };
 
-// State to hold file content and filename
-let attachedFileContent = '';
-let attachedFileName = '';
-
 // Function to add a message to the chat container
 function addMessage(message, type, model) {
     const chatMessages = document.querySelector('.chat-messages');
@@ -19,7 +15,7 @@ function addMessage(message, type, model) {
 
     if (type === "bot-message" && model === "compare-both") {
         messageDiv.classList.add('compare-results');
-
+        //For each model append the result for comparison
         ['llama3.1', 'gpt-3.5-turbo'].forEach(modelKey => {
             const modelMessageDiv = document.createElement('div');
             modelMessageDiv.classList.add('compare-card');
@@ -56,14 +52,15 @@ function addMessage(message, type, model) {
     addReferenceLinkListeners(messageDiv);
 }
 
+//Function to append the time taken by the application to generate answer to the query
 function appendTimeDiv(parentDiv, timeTaken) {
     const timeDiv = document.createElement('div');
     timeDiv.classList.add('time');
-    timeDiv.innerText = `Time: ${Math.abs(timeTaken)} s`;
+    timeDiv.innerText = `Time: ${Math.trunc(timeTaken)} s`;
     parentDiv.appendChild(timeDiv);
 }
 
-// Function to format the message
+// Function to format the message returned as response by LLMs
 function formatMessage(message) {
     if (typeof message !== 'string') {
         console.error('Expected a string message, but received:', message);
@@ -96,7 +93,7 @@ function formatMessage(message) {
     return result;
 }
 
-// Function to get references HTML
+// Function to show references as links
 function getReferencesHTML(message) {
     const references = message.references || [];
     if (references.length === 0) return '';
@@ -126,20 +123,19 @@ function addReferenceLinkListeners(container) {
 async function handleQuery() {
     const userQuery = document.getElementById('user-query').value.trim();
 
-    if (!userQuery && !attachedFileContent.trim()) {
-        showAlert('Please enter a query or attach a file.', 'danger');
+    if (!userQuery) {
+        showAlert('Please enter a query.', 'danger');
         return;
     }
 
     if (userQuery) {
-        const combinedQuery = userQuery + (attachedFileContent ? `\n\nFile Content:\n${attachedFileContent}` : '');
         addMessage({ answer: userQuery, references: [] }, 'user-query'); 
         document.getElementById('user-query').value = '';
         showTypingIndicator();
         try {
             const selectedModel = document.getElementById('model-select').value;
             const endpoint = selectedModel === 'compare-both' ? config.COMPARE_ENDPOINT : config.QUERY_ENDPOINT;
-            const response = await axios.post(endpoint, { query: combinedQuery, model: selectedModel });
+            const response = await axios.post(endpoint, { query: userQuery, model: selectedModel });
             addMessage(response.data, 'bot-message', selectedModel === 'compare-both' ? 'compare-both' : '');
         } catch (error) {
             showAlert(`Error: ${error}`, 'danger');
@@ -149,14 +145,15 @@ async function handleQuery() {
     }
 }
 
-// Function to show alerts
+// Function to show alerts in a Bootstrap modal
 function showAlert(message, type) {
-    const alertDiv = document.createElement('div');
-    alertDiv.className = `alert alert-${type}`;
-    alertDiv.appendChild(document.createTextNode(message));
-    document.body.appendChild(alertDiv);
-    
-    setTimeout(() => alertDiv.remove(), 3000);
+    // Set the message and alert type
+    const alertMessageDiv = document.getElementById('alertMessage');
+    alertMessageDiv.className = `alert alert-${type}`;
+    alertMessageDiv.textContent = message;
+
+    // Show the modal
+    $('#alertModal').modal('show');
 }
 
 // Function to show typing indicator
@@ -176,74 +173,6 @@ function hideTypingIndicator() {
     if (typingDiv) typingDiv.remove();
 }
 
-// Function to extract text from PDF
-async function extractTextFromPDF(file) {
-    const fileReader = new FileReader();
-    return new Promise((resolve, reject) => {
-        fileReader.onload = async function(e) {
-            try {
-                const typedarray = new Uint8Array(e.target.result);
-                const pdf = await pdfjsLib.getDocument(typedarray).promise;
-                let text = '';
-
-                for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-                    const page = await pdf.getPage(pageNum);
-                    const content = await page.getTextContent();
-                    text += content.items.map(item => item.str).join(' ') + '\n';
-                }
-
-                text = text.replace(/\n\s*\n/g, '\n').trim();
-                resolve(text);
-            } catch (error) {
-                reject(error);
-            }
-        };
-
-        fileReader.onerror = function() {
-            reject(new Error('Failed to read file'));
-        };
-
-        fileReader.readAsArrayBuffer(file);
-    });
-}
-
-// Event listener for file input
-document.getElementById('file-upload').addEventListener('change', async function(event) {
-    const file = event.target.files[0];
-    if (file) {
-        if (file.type === 'application/pdf') {
-            try {
-                attachedFileContent = await extractTextFromPDF(file);
-                attachedFileName = file.name;
-                displayAttachedFile();
-            } catch (error) {
-                showAlert(`Error extracting text from PDF: ${error.message}`, 'danger');
-            }
-        } else if (file.type === 'text/plain') {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                attachedFileContent = e.target.result.trim();
-                attachedFileName = file.name;
-                displayAttachedFile();
-            };
-            reader.readAsText(file);
-        } else {
-            showAlert('Unsupported file type. Please upload a text or PDF file.', 'danger');
-        }
-    }
-});
-
-// Function to display attached file information
-function displayAttachedFile() {
-    let fileInfoDiv = document.getElementById('file-info');
-    if (!fileInfoDiv) {
-        fileInfoDiv = document.createElement('div');
-        fileInfoDiv.id = 'file-info';
-        document.querySelector('.chat-messages').appendChild(fileInfoDiv);
-    }
-    fileInfoDiv.innerHTML = `<strong style="color: red;">Attached File:</strong> ${attachedFileName}`;
-}
-
 // Sample prompts event listeners
 document.querySelectorAll('.sample-prompt').forEach(prompt => {
     prompt.addEventListener('click', function() {
@@ -257,6 +186,8 @@ document.getElementById('submit-btn').addEventListener('click', handleQuery);
 document.getElementById('user-query').addEventListener('keypress', function(event) {
     if (event.key === 'Enter') handleQuery();
 });
+
+//For Future use, Admin users must be allowed to refresh emebddings to always fetch results from latest documents
 document.getElementById('sync-docs-btn').addEventListener('click', async () => {
     try {
         await axios.post(config.PROCESSDOCS_ENDPOINT);
@@ -264,7 +195,4 @@ document.getElementById('sync-docs-btn').addEventListener('click', async () => {
     } catch (error) {
         showAlert(`Error: ${error}`, 'danger');
     }
-});
-document.getElementById('attachment-icon').addEventListener('click', () => {
-    document.getElementById('file-upload').click();
 });

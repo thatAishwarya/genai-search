@@ -4,7 +4,6 @@ import logging
 SETTINGS = {
     "PDF_DIR": "data/TCA",
     "PERSIST_DIRECTORIES": {
-        # "llama3.1": "data/llama3.1",
         "llama3.1" : "data/opensource",
         "gpt-3.5-turbo": "data/gpt"
     },

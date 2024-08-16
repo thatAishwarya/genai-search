@@ -1,21 +1,20 @@
 import os
 import time
+from config import SETTINGS
+from logging_config import setup_logging
+from helpers import rag_enabler
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
 
-from app_config import SETTINGS
-from logging_config import setup_logging
-from helpers import search
-
 app = FastAPI()
 
-# Add CORS middleware
+# Add CORS middleware, for front-end integration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Change to restrict access
+    allow_origins=["*"], 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -32,6 +31,7 @@ logger = setup_logging()
 vectorstores = {}
 qa_chains = {}
 
+# Load vector stores and initialise QA chain on application startup
 @app.on_event("startup")
 async def application_start():
     global vectorstores, qa_chains
@@ -42,19 +42,20 @@ async def application_start():
             persist_directory = SETTINGS["PERSIST_DIRECTORIES"][model_key]
             if not os.path.exists(persist_directory):
                 # Create vector store if it does not exist
-                vectorstores[model_key] = search.update_embeddings(model_key)
+                vectorstores[model_key] = rag_enabler.update_embeddings(model_key)
             else:
                 # Load existing vector store
-                vectorstores = search.load_vectorstores(vectorstores)
+                vectorstores = rag_enabler.load_vectorstores(vectorstores)
         
         # Create QA chains for each model using the vector stores
         for model_key in SETTINGS["LLM_MODELS"].keys():
             if model_key not in qa_chains:
-                qa_chains = search.create_qa_chain(model_key, vectorstores, qa_chains)
+                qa_chains = rag_enabler.create_qa_chain(model_key, vectorstores, qa_chains)
     except Exception as e:
         logger.error(f"Error during application startup: {e}")
         raise HTTPException(status_code=500, detail="Application startup failed")
 
+# API to refresh document embeddings
 @app.post("/processdocs")
 async def process_docs():
     global vectorstores, qa_chains
@@ -62,11 +63,11 @@ async def process_docs():
     try:
         # Force update embeddings and reinitialize vector stores
         for model_key in SETTINGS["LLM_MODELS"].keys():
-            vectorstores[model_key] = search.update_embeddings(model_key)
+            vectorstores[model_key] = rag_enabler.update_embeddings(model_key)
         
         # Recreate QA chains for each model after updating embeddings
         for model_key in SETTINGS["LLM_MODELS"].keys():
-            qa_chains = search.create_qa_chain(model_key, vectorstores, qa_chains)
+            qa_chains = rag_enabler.create_qa_chain(model_key, vectorstores, qa_chains)
         
         return {"status": "success"}
     except Exception as e:
@@ -77,6 +78,7 @@ class QueryData(BaseModel):
     query: str
     model: str
 
+# API to accept user query and return a response
 @app.post("/query")
 async def query(query_data: QueryData):
     global vectorstores, qa_chains
@@ -89,7 +91,7 @@ async def query(query_data: QueryData):
         # Create QA chain if it does not exist for the requested model
         if model_key not in qa_chains:
             logger.info("Creating chain")
-            qa_chains = search.create_qa_chain(model_key, vectorstores)
+            qa_chains = rag_enabler.create_qa_chain(model_key, vectorstores)
         
         logger.info("Initailising qa_chain")
         qa_chain = qa_chains[model_key]
@@ -125,6 +127,7 @@ async def query(query_data: QueryData):
 class CompareQueryData(BaseModel):
     query: str
 
+# API to accept user query and return response from multiple models
 @app.post("/compare")
 async def compare(query_data: CompareQueryData):
     global vectorstores, qa_chains
@@ -137,7 +140,7 @@ async def compare(query_data: CompareQueryData):
             start_time = time.time()
             if model_key not in qa_chains:
                 logger.info(f"Creating chain for model: {model_key}")
-                qa_chains = search.create_qa_chain(model_key, vectorstores, qa_chains)
+                qa_chains = rag_enabler.create_qa_chain(model_key, vectorstores, qa_chains)
             
             logger.info(f"Processing query with model: {model_key}")
             qa_chain = qa_chains[model_key]
@@ -170,6 +173,7 @@ async def compare(query_data: CompareQueryData):
         logger.error(f"Error processing comparison query: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+# Landing Page of the Application
 @app.get("/")
 async def root():
     return RedirectResponse(url="/static/chatbot.html")

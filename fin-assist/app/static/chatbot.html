@@ -16,6 +16,7 @@
         </h1>
         <button id="sync-docs-btn" class="sync-btn"><i class="fas fa-sync-alt"></i> Refresh Docs</button>
     </div>
+     <!-- Chat Messages -->
     <div class="chat-container" id="chat-container">
         <div class="chat-messages"></div>
         <div class="sample-prompts" id="sample-prompts">
@@ -24,6 +25,7 @@
             <div class="sample-prompt" data-query="Tax implications of foreign inheritance?">Tax implications of foreign inheritance?</div>
         </div>
     </div>
+     <!-- User Input -->
     <div class="input-container">
         <div class="dropdown-container">
             <select id="model-select" class="form-control small-dropdown">
@@ -40,6 +42,26 @@
         <button id="submit-btn" class="btn btn-primary">
             <i class="fas fa-paper-plane"></i>
         </button>
+    </div>
+
+    <!-- Bootstrap Alert Modal -->
+    <div class="modal fade" id="alertModal" tabindex="-1" role="dialog" aria-labelledby="alertModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="alertModalLabel">Message</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div id="alertMessage" class="alert"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Bootstrap JS and dependencies -->

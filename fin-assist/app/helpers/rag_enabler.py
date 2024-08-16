@@ -7,15 +7,17 @@ from langchain_community.vectorstores.chroma import Chroma
 from langchain.prompts import PromptTemplate
 from langchain.memory import ConversationBufferMemory
 from langchain.schema import Document
-from langchain.retrievers import ContextualCompressionRetriever
-from langchain_community.document_compressors import LLMLinguaCompressor
 from helpers import document_reader
-from app_config import SETTINGS
+from config import SETTINGS
 from logging_config import setup_logging
 
 # Initialize logging
 logger = setup_logging()
 
+'''
+Create numerical representation of text data using embedding models and store
+it in vector database. 
+'''
 def update_embeddings(model_key):
     logger.info(f"Updating embeddings for model {model_key}.")
     try:
@@ -26,7 +28,10 @@ def update_embeddings(model_key):
         documents = [
             Document(
                 page_content=text["content"],
-                metadata={"filename": text["filename"], "page_num": text["page_num"]}
+                metadata={
+                    "filename": text["filename"], 
+                    "page_num": text["page_num"], 
+                    }
             )
             for text in page_texts
         ]
@@ -35,9 +40,9 @@ def update_embeddings(model_key):
         model_config = SETTINGS["LLM_MODELS"][model_key]
 
         if model_key == "llama3.1":
-            embedding_function = HuggingFaceEmbeddings(model_name=model_config["embedding_model"])
+            embeddings = HuggingFaceEmbeddings(model_name=model_config["embedding_model"])
         elif model_key == "gpt-3.5-turbo":
-            embedding_function = OpenAIEmbeddings(model=model_config["embedding_model"], openai_api_key=SETTINGS["OPENAI_API_KEY"])
+            embeddings = OpenAIEmbeddings(model=model_config["embedding_model"], openai_api_key=SETTINGS["OPENAI_API_KEY"])
         else:
             raise ValueError(f"Unsupported model key: {model_key}")
 
@@ -46,7 +51,7 @@ def update_embeddings(model_key):
         # Create or update vector store
         vectorstore = Chroma.from_documents(
             documents=documents, 
-            embedding_function=embedding_function,
+            embedding=embeddings,
             persist_directory=persist_directory
         )
         logger.info(f"Vector store for {model_key} created or updated and persisted.")
@@ -56,6 +61,9 @@ def update_embeddings(model_key):
         logger.error(f"Error updating embeddings: {e}")
         raise
 
+'''
+Load the existing vector store
+'''
 def load_vectorstores(vectorstores):
     logger.info("Loading vector stores.")
     try:
@@ -66,10 +74,10 @@ def load_vectorstores(vectorstores):
                 # Create embedding object based on model_key
                 model_config = SETTINGS["LLM_MODELS"][model_key]
                 if model_key == "gpt-3.5-turbo":
-                    embedding_function = OpenAIEmbeddings(model=model_config["embedding_model"], openai_api_key=SETTINGS["OPENAI_API_KEY"])
+                    embeddings = OpenAIEmbeddings(model=model_config["embedding_model"], openai_api_key=SETTINGS["OPENAI_API_KEY"])
                 else:
-                    embedding_function = HuggingFaceEmbeddings(model_name=model_config["embedding_model"])
-                vectorstores[model_key] = Chroma(persist_directory=persist_directory, embedding_function=embedding_function)
+                    embeddings = HuggingFaceEmbeddings(model_name=model_config["embedding_model"])
+                vectorstores[model_key] = Chroma(persist_directory=persist_directory, embedding_function=embeddings)
             else:
                 logger.info(f"No existing vector store found for model {model_key}.")
         logger.info("All vector stores loaded.")
@@ -78,6 +86,11 @@ def load_vectorstores(vectorstores):
         logger.error(f"Error loading vector stores: {e}")
         raise
 
+'''
+Create a chain to handle question answer task. The chain will 
+query the vector store for incoming user query, retrieve the matching records
+and summarise the result using LLM
+'''
 def create_qa_chain(model_key, vectorstores, qa_chains):
     if model_key in qa_chains:
         logger.info(f"QA chain for {model_key} already created.")
@@ -100,24 +113,14 @@ def create_qa_chain(model_key, vectorstores, qa_chains):
         # Create a retriever from the vector store
         retriever = vectorstore.as_retriever()
 
-        # Initialize the compressor
-        compressor = LLMLinguaCompressor(model_name="openai-community/gpt2", device_map="cpu")
-
-        # Wrap the retriever with the compressor
-        compression_retriever = ContextualCompressionRetriever(
-            base_compressor=compressor, 
-            base_retriever=retriever,
-            compress_queries=True,
-            compress_documents=False
-        )
-
         # Create a prompt template based on the settings
         prompt = PromptTemplate(
             input_variables=["history", "context", "question"],
             template=SETTINGS["PROMPT_TEMPLATE"],
         )
 
-        # Set up memory for conversation history
+        # Set up memory for conversation history, this is necessary to handle follow-up questions
+        # summary_memory ensures only a semory of chat history is passed
         memory = ConversationBufferMemory(
             memory_key="summary_memory",
             return_messages=True,
@@ -137,10 +140,14 @@ def create_qa_chain(model_key, vectorstores, qa_chains):
                 "memory": memory,
             }
         )
+
         qa_chains[model_key] = qa_chain
+
         logger.info(f"QA chain for {model_key} created.")
         return qa_chains
 
     except Exception as e:
         logger.error(f"Error creating QA chain: {e}")
         raise
+
+ 

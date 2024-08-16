@@ -6,6 +6,5 @@ langchain_community
 requests
 chromadb
 langchain-openai
-pytest
 langchain_groq
-llmlingua
+sentence_transformers
